@@ -1,0 +1,5 @@
+# A deeper show everywhere.
+listing_prefix: area-
+show_depth:
+  down: 3
+  up: 2

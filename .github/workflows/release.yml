@@ -1,0 +1,70 @@
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      # A release whose tag and draft already exist on GitHub, left by a run
+      # that failed after pushing them, is finished from its tag: GoReleaser
+      # builds there and publishes the draft. semantic-release does not run.
+      publish:
+        description: 'Finish the release of this existing tag and draft (v1.2.3); empty cuts the next release'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  # A tag being finished was tested before its release commit, which changes
+  # only the version; tested again it would ask for its own release fixture,
+  # which exists only once the release does.
+  test:
+    if: inputs.publish == ''
+    uses: ./.github/workflows/test.yml
+
+  release:
+    needs: test
+    if: ${{ !cancelled() && (needs.test.result == 'success' || (inputs.publish != '' && needs.test.result == 'skipped')) }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.publish }}
+
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: source/hooks/go.mod
+          cache-dependency-path: source/hooks/go.sum
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: inputs.publish == ''
+        with:
+          node-version: lts/*
+
+      - uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
+        with:
+          version: v2.19.0
+          install-only: true
+
+      # The notes generator semantic-release bundles renders with
+      # conventional-changelog-writer 8; the conventionalcommits preset needs
+      # writer 9 from its major 10 on, so it stays on major 9.
+      - if: inputs.publish == ''
+        run: >-
+          npx --yes
+          -p semantic-release@25.0.9
+          -p @semantic-release/exec@7.1.0
+          -p @semantic-release/git@11.0.1
+          -p @semantic-release/github@12.0.10
+          -p conventional-changelog-conventionalcommits@9.3.1
+          semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - if: inputs.publish != ''
+        run: goreleaser release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

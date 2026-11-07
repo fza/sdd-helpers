@@ -1,0 +1,49 @@
+version: 2
+
+project_name: sdd-helpers
+
+builds:
+  - &binary
+    id: sdd-grounding-gate
+    dir: source/hooks
+    main: ./cmd/sdd-grounding-gate
+    binary: sdd-grounding-gate
+    # Drops the build machine's paths from every program, which also keeps
+    # the unpacked release within its size budget.
+    flags:
+      - -trimpath
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+  - <<: *binary
+    id: sdd-capture
+    main: ./cmd/sdd-capture
+    binary: sdd-capture
+
+# hooks/run fetches sdd-helpers_<version>_<os>_<arch>.tar.gz and checks it
+# against checksums.txt; both names are part of its contract.
+archives:
+  - formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - LICENSE
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  disable: true
+
+# @semantic-release/github creates the release as a draft with its notes;
+# GoReleaser finds that draft by name (both name it v<version>), adds the
+# archives and checksums.txt, leaves the notes as they are, and publishes it,
+# since `draft` stays false. Releases are immutable, so nothing could be added
+# after publishing. A draft is not found by its tag, hence use_existing_draft.
+release:
+  mode: keep-existing
+  use_existing_draft: true

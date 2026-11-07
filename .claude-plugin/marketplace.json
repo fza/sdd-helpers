@@ -1,0 +1,14 @@
+{
+  "name": "sdd-helpers",
+  "description": "Claude Code hooks and skills for sdd decision graphs",
+  "owner": {
+    "name": "Felix Zandanel"
+  },
+  "plugins": [
+    {
+      "name": "sdd-helpers",
+      "source": "./plugin",
+      "description": "The sdd grounding gate hooks, sdd-capture, and a skill for each"
+    }
+  ]
+}
