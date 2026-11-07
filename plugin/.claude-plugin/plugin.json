@@ -28,5 +28,6 @@
       "default": true,
       "required": false
     }
-  }
+  },
+  "version": "1.0.0"
 }
