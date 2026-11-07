@@ -3,35 +3,31 @@
 
 # Graph directory relative to repository root.
 graph_dir: .sdd/graph
-
 # The repository's default branch. An engine session that declares no
 # branch works on the branch its served checkout has checked out, and on
 # this one when that checkout has none.
 default_branch: main
-
 # Canonical repo identity for cross-repo references — URL-shaped
 # (host/path), auto-derived from the git remote by `sdd init` and
 # identical for every user. Other graphs reference entries here as
 # <repo_id>:<entry-id>. Empty means local-only (no remote identity).
 repo_id: github.com/fza/sdd-helpers
-
 # Graph language — locale code for the language captured entries are
 # authored in. Empty means English (default). The engine serves the
 # matching bundled vocabulary-<locale> reference when rendering to users.
 language: en
-
 # Skill installation scope — where `sdd init` extracts the agent skill
 # bundle. `user` installs into the user-global directory (e.g.
 # ~/.claude/skills/); `project` installs into the repo-local
 # .claude/skills/ tree. Recorded on first run so subsequent runs (and
 # clones) reinstall to the same place without re-prompting.
 skill_scope: project
-
 # Agent targets `sdd init` renders skills for. Each listed agent gets its
 # own rendered, committed skill dir (claude → .claude/skills/, codex →
 # .agents/skills/). Chosen via multi-select on first run; every contributor
 # on the repo renders the same set.
 supported_agents: [claude]
+dependencies: [github.com/fza/agentic-helpers]
 
 # LLM provider settings (defaults shown — override here or in config.local.yaml).
 # llm:
