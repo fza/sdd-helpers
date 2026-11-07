@@ -47,6 +47,8 @@ the repository's `.mcp.json` and instruction files stay at the root. A release i
 
 ## Working agreements
 
+- **sdd-helpers is a temporary workaround for quirks of stock sdd.** A feature belongs here only as
+  a workaround for such a quirk, and the change that lets stock sdd do its job removes it.
 - **A commit message is one line**: a Conventional Commits prefix (`feat:`, `fix:`, `docs:`,
   `chore:`, `refactor:`, `test:`, `build:`, `style:`), then the description, 100 characters at most.
   Nothing follows the subject line.

@@ -12,6 +12,10 @@ or drafts an entry, reads each entry with what refined it, and writes new entrie
 path. There is nothing to run by hand. Hooks do the work in the background, and a short skill per
 piece tells the agent what it is doing. A project without a graph never hears from it.
 
+sdd-helpers is a temporary workaround. Each piece works around a known quirk of stock sdd, and the
+goal is to fix that quirk in sdd itself. Once stock sdd does a piece's job, the piece is removed
+from sdd-helpers.
+
 > **Your data stays on your machine.** sdd-helpers keeps its state in local files and sends none of
 > it anywhere. The one request it makes is its launcher downloading the plugin's own release from
 > GitHub; there is no update check. A capture runs sdd's own pre-flight, which reaches the model
