@@ -28,7 +28,7 @@ reads an empty graph, creating nothing in the missing checkout.
 | PostToolUse on `mcp__sdd__stage_attachment` | `record` | where `.sdd/grounding.yaml` sets `draft_lint`: keeps the text the staging left under the handle sdd answered with (`recordStaged`) |
 | PostToolUse on `Write`, `Edit` | `record` | grounds a draft saved under a `drafts/` (or `draft/`) directory while every read stands, hashing the file as saved |
 | PreToolUse on `AskUserQuestion`, `Write`, `Edit`, `NotebookEdit`, `Bash`, `Monitor` (its command read as a Bash command), `mcp__sdd__show`, `mcp__sdd__start_procedure`, `mcp__sdd__next`, `mcp__sdd__stage_attachment` | `gate` | for `AskUserQuestion`, `Write`, `Edit` and `NotebookEdit` (by `file_path` or `notebook_path` under `drafts/`), exits 0 with the refusal's text as `hookSpecificOutput.additionalContext`, its first line saying the call went ahead and, for reads owed, that they are owed before the next question or draft (`letThrough`); for every other call, refuses with exit 2 and the refusal on stderr; or passes with exit 0 and nothing |
-| PostToolUse on `mcp__sdd__.*` | `collapse` | replaces an answer carrying sdd's structured fields with its collapsed form through `hookSpecificOutput.updatedMCPToolOutput` (`internal/collapse`), and marks what it printed in full in the calling agent's set |
+| PostToolUse on `mcp__sdd__.*` | `collapse` | replaces an answer carrying sdd's structured fields with its collapsed form, as a plain JSON string under `hookSpecificOutput.updatedToolOutput` (`internal/collapse`), and marks what it printed in full in the calling agent's set |
 | PreToolUse on `Agent`, `Task` | `spawn` | for `subagent_type: fork`, keeps the spawner's set under the call's `tool_use_id` |
 | SessionEnd | `end` | removes the session's ledger and its shown sets |
 | none: `start` and `check` run it detached, at most once a day | `prune` | deletes the plugin's release folders no session may still run, prints `deleted <folder>` for each, and records the run in `<data>/release-prune.json`; exits 1 on stderr where the run failed; reads no payload and works whatever the project, and touches nothing without `CLAUDE_PLUGIN_DATA` and `CLAUDE_PLUGIN_ROOT` |
@@ -176,6 +176,14 @@ Visiting fixed paths rather than every object holding an `id` matters: a ref and
 carry ids that name no line the view printed. The answer is accepted as an object, the object
 encoded as a string, `structuredContent`, or the text of a content block, as Claude Code hands MCP
 answers on.
+
+The shortened answer goes back as one JSON object encoded as a plain string under
+`hookSpecificOutput.updatedToolOutput`: the form Claude Code hands the agent an untouched sdd
+answer in, since a replacement must match the tool's output shape. An MCP content wrapper under
+`updatedMCPToolOutput` reaches the agent serialized, one escaped string in which every quote and
+line break gains a backslash, longer than an untouched answer wherever little collapses. Every
+piece is encoded with `SetEscapeHTML(false)` (`encode`), so `<`, `>` and `&` stay as sdd sent them
+rather than turning into `\u003c` escapes the agent pays for and gains nothing from.
 
 A set, `.sdd/tmp/grounding-gate/<session>.shown.json` (`<session>.<agent>.shown.json` for a
 subagent), holds per entry id a digest of its title, kind, status and summary, and per served piece

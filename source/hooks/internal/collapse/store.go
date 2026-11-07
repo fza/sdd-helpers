@@ -267,28 +267,20 @@ func sameSet(before Set, after Set) bool {
 }
 
 // updatedOutput is the PostToolUse answer replacing an MCP tool's output
-// with answer, as the one text block Claude Code hands the agent.
+// with answer, as the plain string Claude Code hands the agent an untouched
+// sdd answer in. A replacement must match the tool's output shape: an MCP
+// content wrapper reaches the agent serialized, as one escaped string longer
+// than the answer it carries.
 func updatedOutput(answer json.RawMessage) ([]byte, error) {
 	var replaced struct {
 		HookSpecificOutput struct {
-			HookEventName        string `json:"hookEventName"`
-			UpdatedMCPToolOutput struct {
-				Content []struct {
-					Type string `json:"type"`
-					Text string `json:"text"`
-				} `json:"content"`
-			} `json:"updatedMCPToolOutput"`
+			HookEventName     string `json:"hookEventName"`
+			UpdatedToolOutput string `json:"updatedToolOutput"`
 		} `json:"hookSpecificOutput"`
 	}
 
 	replaced.HookSpecificOutput.HookEventName = "PostToolUse"
-	replaced.HookSpecificOutput.UpdatedMCPToolOutput.Content = append(
-		replaced.HookSpecificOutput.UpdatedMCPToolOutput.Content,
-		struct {
-			Type string `json:"type"`
-			Text string `json:"text"`
-		}{Type: "text", Text: string(answer)},
-	)
+	replaced.HookSpecificOutput.UpdatedToolOutput = string(answer)
 
 	encoded, err := json.Marshal(replaced)
 	if err != nil {

@@ -1,0 +1,28 @@
+{
+  "sections": "",
+  "notices": [],
+  "view_sections": [
+    {
+      "render": "list",
+      "name": "recent",
+      "brief": "entries naming <data> & <version> folders",
+      "matched": 1,
+      "list": {
+        "items": [
+          {
+            "entry": {
+              "id": "20261107-115156-d-tac-mh8",
+              "title": "`<data>` folder pruning & the `used` mark",
+              "type": "decision",
+              "kind": "directive",
+              "layer": "tactical",
+              "status": "closed-by 20261107-123448-s-tac-vpf",
+              "summary": "Folders under <data> older than 14 days & unused go."
+            },
+            "score": 0.9
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -46,23 +46,35 @@ func collapsedText(t *testing.T, got result) string {
 	}
 
 	var answer struct {
-		HookSpecificOutput struct {
-			HookEventName string `json:"hookEventName"`
-			Updated       struct {
-				Content []struct {
-					Type string `json:"type"`
-					Text string `json:"text"`
-				} `json:"content"`
-			} `json:"updatedMCPToolOutput"`
-		} `json:"hookSpecificOutput"`
+		HookSpecificOutput map[string]json.RawMessage `json:"hookSpecificOutput"`
 	}
 
 	err := json.Unmarshal([]byte(got.stdout), &answer)
-	if err != nil || answer.HookSpecificOutput.HookEventName != "PostToolUse" || len(answer.HookSpecificOutput.Updated.Content) != 1 {
-		t.Fatalf("the hook should answer one replacement text block, got %s (%v)", got.stdout, err)
+	if err != nil {
+		t.Fatalf("the hook should answer JSON, got %s (%v)", got.stdout, err)
 	}
 
-	return answer.HookSpecificOutput.Updated.Content[0].Text
+	var event, replaced string
+
+	_ = json.Unmarshal(answer.HookSpecificOutput["hookEventName"], &event)
+
+	err = json.Unmarshal(answer.HookSpecificOutput["updatedToolOutput"], &replaced)
+	if event != "PostToolUse" || err != nil {
+		t.Fatalf("the hook should replace the answer with a plain string, the form an untouched sdd answer arrives in, got %s", got.stdout)
+	}
+
+	_, older := answer.HookSpecificOutput["updatedMCPToolOutput"]
+	if older {
+		t.Errorf("the hook should answer through updatedToolOutput alone, got %s", got.stdout)
+	}
+
+	var shortened map[string]json.RawMessage
+
+	if json.Unmarshal([]byte(replaced), &shortened) != nil || shortened["content"] != nil {
+		t.Errorf("the replacement should be sdd's answer object itself, not a content wrapper, got %s", replaced)
+	}
+
+	return replaced
 }
 
 func collapses(t *testing.T, got result) {

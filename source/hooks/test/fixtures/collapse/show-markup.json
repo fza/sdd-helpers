@@ -1,0 +1,25 @@
+{
+  "entries": "",
+  "items": [
+    {
+      "id": "20261107-123448-s-tac-vpf",
+      "title": "Daily release folder pruning implemented",
+      "kind": "done",
+      "layer": "tactical",
+      "status": "open",
+      "summary": "Old release folders under <data> go once a day.",
+      "body": "A run keeps `<data>/<version>` folders a session may still run & deletes the rest; a folder used within 14 days is > 0 days from its mark.",
+      "upstream": [
+        {
+          "relation": "closes",
+          "id": "20261107-115156-d-tac-mh8",
+          "title": "`<data>` folder pruning & the `used` mark",
+          "kind": "directive",
+          "status": "closed-by 20261107-123448-s-tac-vpf",
+          "summary": "Folders under <data> older than 14 days & unused go.",
+          "depth": 1
+        }
+      ]
+    }
+  ]
+}

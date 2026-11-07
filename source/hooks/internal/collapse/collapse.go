@@ -14,6 +14,7 @@
 package collapse
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -93,7 +94,7 @@ func Answer(tool string, response json.RawMessage, held *Set) (json.RawMessage, 
 
 	answer[noteKey], _ = json.Marshal(Note)
 
-	shortened, err := json.Marshal(answer)
+	shortened, err := encode(answer)
 	if err != nil {
 		return nil, false
 	}
@@ -253,7 +254,7 @@ func (walk *pass) chain(raw json.RawMessage) (json.RawMessage, bool) {
 		return raw, false
 	}
 
-	encoded, err := json.Marshal(chain)
+	encoded, err := encode(chain)
 	if err != nil {
 		return raw, false
 	}
@@ -335,7 +336,7 @@ func (walk *pass) viewEntry(raw json.RawMessage) (json.RawMessage, bool) {
 	pointer := keep(entry, "id", "title")
 	pointer[markKey] = json.RawMessage("true")
 
-	encoded, err := json.Marshal(pointer)
+	encoded, err := encode(pointer)
 	if err != nil {
 		return raw, false
 	}
@@ -397,7 +398,7 @@ func reencoded(raw json.RawMessage, value any, changed bool) (json.RawMessage, b
 		return raw, false
 	}
 
-	encoded, err := json.Marshal(value)
+	encoded, err := encode(value)
 	if err != nil {
 		return raw, false
 	}
@@ -490,10 +491,28 @@ func (walk *pass) markLine(item object) {
 }
 
 func (walk *pass) store(answer object, field string, value any) {
-	encoded, err := json.Marshal(value)
+	encoded, err := encode(value)
 	if err == nil {
 		answer[field] = encoded
 	}
+}
+
+// encode is json.Marshal leaving `<`, `>` and `&` as they are: the agent
+// reads the answer as text, where `\u003c` costs tokens and says nothing more.
+// Every piece carrying sdd's text is encoded through it, since an escape baked
+// into a nested piece survives the outer encoding.
+func encode(value any) (json.RawMessage, error) {
+	var buffer bytes.Buffer
+
+	encoder := json.NewEncoder(&buffer)
+	encoder.SetEscapeHTML(false)
+
+	err := encoder.Encode(value)
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes.TrimSuffix(buffer.Bytes(), []byte("\n")), nil
 }
 
 // lineDigest covers what a pointer leaves out: an entry whose title, kind,

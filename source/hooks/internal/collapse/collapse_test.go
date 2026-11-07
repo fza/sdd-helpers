@@ -321,3 +321,41 @@ func TestEveryAnswerFormIsRead(t *testing.T) {
 		})
 	}
 }
+
+func TestMarkupInAnAnswerStaysUnescaped(t *testing.T) {
+	cases := []struct {
+		tool    string
+		fixture string
+		kept    []string
+	}{
+		{tool: "show", fixture: "show-markup.json", kept: []string{"`<data>/<version>`", "run & deletes", "> 0 days", "`<data>` folder pruning & the"}},
+		{tool: "view", fixture: "view-markup.json", kept: []string{"naming <data> & <version> folders", "`<data>` folder pruning & the"}},
+	}
+
+	for _, each := range cases {
+		t.Run(each.tool, func(t *testing.T) {
+			var held collapse.Set
+
+			collapse.Answer(each.tool, fixture(t, each.fixture), &held)
+
+			shortened, collapsed := collapse.Answer(each.tool, fixture(t, each.fixture), &held)
+			if !collapsed {
+				t.Fatal("a repeated answer should collapse")
+			}
+
+			for _, mark := range []string{"<", ">", "&"} {
+				defaultEscape, _ := json.Marshal(mark)
+
+				if strings.Contains(string(shortened), strings.Trim(string(defaultEscape), `"`)) {
+					t.Errorf("the shortened answer should keep markup as sdd sent it, not as an escape, got %s", shortened)
+				}
+			}
+
+			for _, text := range each.kept {
+				if !strings.Contains(string(shortened), text) {
+					t.Errorf("the shortened answer should carry %q as it was, got %s", text, shortened)
+				}
+			}
+		})
+	}
+}
