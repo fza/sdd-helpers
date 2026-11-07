@@ -15,6 +15,23 @@ func Exclusive(file *os.File) error {
 	})
 }
 
+// TryExclusive takes the lock where nobody holds it, answering false at once
+// where somebody does.
+func TryExclusive(file *os.File) (bool, error) {
+	err := retryInterrupted(func() error {
+		return syscall.Flock(int(file.Fd()), syscall.LOCK_EX|syscall.LOCK_NB)
+	})
+	if errors.Is(err, syscall.EWOULDBLOCK) {
+		return false, nil
+	}
+
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 func Unlock(file *os.File) error {
 	return syscall.Flock(int(file.Fd()), syscall.LOCK_UN)
 }

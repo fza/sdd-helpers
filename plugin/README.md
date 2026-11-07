@@ -37,8 +37,9 @@ of the release named in `.claude-plugin/plugin.json`. On the first run of a rele
 them from `https://github.com/fza/sdd-helpers/releases`, checks each archive against the release's
 `checksums.txt`, and keeps them under Claude Code's plugin data folder. The binaries,
 `sdd-grounding-gate` and `sdd-capture`, are built from the repository's `source/hooks` by its release
-workflow. The gate runs only as a hook, at session start and end and around tool calls; `sdd-capture`
-runs only when the agent calls it.
+workflow. The gate runs only as a hook, at session start and end and around tool calls, and once a
+day a session start runs it in the background to delete old releases; `sdd-capture` runs only when
+the agent calls it.
 
 ## What it sends
 
@@ -51,8 +52,10 @@ Nothing leaves the machine unless one of these applies:
 
 ## What it writes outside the project
 
-- The release binaries, one folder per version in the plugin's data directory. They stay until
-  removed by hand.
+- The release binaries, one folder per version in the plugin's data directory, each with a `used`
+  mark each session start running it writes. Once a day a release no session may still run goes:
+  one the plugin does not name, no running `sdd-` program executes from and no session start used
+  within 14 days. The run records its outcome in `release-prune.json` there, beside its lock files.
 - `sdd-caps.json` under `~/.cache/sdd-helpers` (or `$XDG_CACHE_HOME/sdd-helpers`): what the installed
   `sdd` supports, read from its help text.
 

@@ -55,6 +55,13 @@ command an agent runs, downloads a missing release from GitHub and checks it aga
 `checksums.txt`; a prompt or a tool-call hook never downloads. How it fetches, locks and falls back
 is in the [architecture](architecture.md#where-the-binaries-come-from).
 
+Each session start writes a `used` mark into the folder of the release it runs. Once a day, a
+session start in any project starts `sdd-grounding-gate prune` in the background, which deletes
+every release folder no session may still need: it keeps the release the plugin names, every release
+a running `sdd-` program executes from, and every release a session start used within 14 days. The
+run records its outcome in `release-prune.json` in the data directory; what it keeps, and how, is in
+the [architecture](architecture.md#release-pruning).
+
 With no binary installed and none fetchable, the grounding gate refuses every call it guards rather
 than let work run ungrounded, `sdd-capture` exits 1, and every other hook does nothing:
 
@@ -76,6 +83,12 @@ nothing where all is well. Each line opens `sdd-helpers: `:
 | `sdd-helpers: <why>`, naming the settings file and the key | a settings file cannot be read or parsed, or sets an option to no boolean; every option then reads as its default |
 | ``sdd-helpers: sdd's sessions.token_saving is on, so the grounding gate's per-agent collapse of repeated sdd output is off; `sdd config set sessions.token_saving off` turns it on`` | the project carries a graph, the gate is on, and `sdd config get sessions.token_saving` prints `on` ([collapsing](../grounding-gate/usage.md#repeated-sdd-output-collapses)) |
 | `sdd-helpers: <dir> on the PATH holds <names>, which every project's Bash runs ahead of the plugin; remove them` | a `PATH` directory outside `/.claude/plugins/` holds `sdd-capture` or `sdd-grounding-gate`; one line per directory |
+
+The session start adds one line, once, after a release prune failed, in any project:
+
+| Line | When |
+|---|---|
+| `sdd-helpers: release prune failed at <time>: <error>; see <data>/release-prune.json` | the last run recorded an error no session start has told yet |
 
 ## sdd
 

@@ -19,14 +19,16 @@ Go rules, loaded when a session touches code under `source/`.
   would otherwise carry and test themselves. `github.com/goccy/go-yaml` reads a draft's header,
   `.sdd/config.yaml` and `.sdd/grounding.yaml`, since the standard library parses no YAML;
   `mvdan.cc/sh/v3` parses bash for the grounding gate, the only way to tell a call from text that
-  names one; `golang.org/x/sys` sets a symlink's own times in the launcher tests, which `os.Chtimes`
-  cannot, since it follows the link.
+  names one; `golang.org/x/sys` reads darwin's process table through `sysctl`, which the standard
+  library cannot, and sets a symlink's own times in the launcher tests, which `os.Chtimes` cannot,
+  since it follows the link.
 
 ## Hooks
 
 - **A hook stays silent in a project without `.sdd/`.** It reads nothing, creates nothing and exits
   0 before it touches stdin. `sdd-grounding-gate check` is the one exception: its work is the
-  machine, an option tie broken or a binary on the PATH, so it speaks in every project.
+  machine, an option tie broken, a binary on the PATH or the plugin's old release folders, so it
+  speaks in every project and starts the day's release prune there.
 
 ## Code
 

@@ -28,6 +28,11 @@ func main() {
 		userHome = ""
 	}
 
+	executable, err := os.Executable()
+	if err != nil {
+		executable = ""
+	}
+
 	cacheRoot := os.Getenv("XDG_CACHE_HOME")
 	if cacheRoot == "" && userHome != "" {
 		cacheRoot = filepath.Join(userHome, ".cache")
@@ -44,6 +49,9 @@ func main() {
 		LookPath:   exec.LookPath,
 		Files:      shellwalk.OSFiles{},
 		SddValues:  process.SddConfig{},
+		Starter:    process.Detached{},
+		Executable: executable,
+		Processes:  process.Table{},
 	}
 	streams := hookio.Streams{In: os.Stdin, Out: os.Stdout, Err: os.Stderr}
 

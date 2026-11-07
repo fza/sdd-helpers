@@ -264,6 +264,40 @@ func (held *Dir) OpenChecked(name string, flag int, perm fs.FileMode) (*os.File,
 	return file, nil
 }
 
+// Rename moves the entry from to the name to, both below held. A rename
+// never follows a link at either name, and os.Root refuses a folder already
+// at the new name, as os.Rename does, where rename(2) would replace an empty
+// one.
+func (held *Dir) Rename(from string, to string) error {
+	source, target := path.Join(held.path, from), path.Join(held.path, to)
+	if !singleName(from) || !singleName(to) {
+		return fmt.Errorf("moving %s to %s: names no single entry", source, target)
+	}
+
+	err := held.root.Rename(from, to)
+	if err != nil {
+		return fmt.Errorf("moving %s to %s: %w", source, target, err)
+	}
+
+	return nil
+}
+
+// RemoveAll removes name below held and everything below it, following no
+// link.
+func (held *Dir) RemoveAll(name string) error {
+	at := path.Join(held.path, name)
+	if !singleName(name) {
+		return fmt.Errorf("%s names no single entry", at)
+	}
+
+	err := held.root.RemoveAll(name)
+	if err != nil {
+		return fmt.Errorf("removing %s: %w", at, err)
+	}
+
+	return nil
+}
+
 // Remove removes the file or empty folder name below held.
 func (held *Dir) Remove(name string) error {
 	at := path.Join(held.path, name)

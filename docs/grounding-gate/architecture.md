@@ -17,13 +17,13 @@ reads an empty graph, creating nothing in the missing checkout.
 
 ## Modes
 
-`sdd-grounding-gate <mode>` reads the hook payload on standard input. Every mode but `check` exits 0
-at once where `grounding_gate_enabled` is off or no graph governs the project.
+`sdd-grounding-gate <mode>` reads the hook payload on standard input. Every mode but `check` and
+`prune` exits 0 at once where `grounding_gate_enabled` is off or no graph governs the project.
 
 | Event | Mode | What it does |
 |---|---|---|
-| SessionStart | `start` | removes the ledgers of sessions that left a week ago without ending cleanly; with `source: compact`, forgets this session's reads and keeps its grounded drafts; switches collapsing on or off for the session (see [Collapsing](#collapsing)) |
-| SessionStart | `check` | prints the plugin's session-start lines ([plugin usage](../plugin/usage.md#what-each-session-start-says)); runs whether or not the gate is on |
+| SessionStart | `start` | removes the ledgers of sessions that left a week ago without ending cleanly; with `source: compact`, forgets this session's reads and keeps its grounded drafts; switches collapsing on or off for the session (see [Collapsing](#collapsing)); tells a failed release prune once and starts the day's prune, detached (`internal/releaseprune`, [plugin architecture](../plugin/architecture.md#release-pruning)) |
+| SessionStart | `check` | prints the plugin's session-start lines ([plugin usage](../plugin/usage.md#what-each-session-start-says)); tells a failed release prune once and starts the day's prune, detached, as `start` does; runs whether or not the gate is on, in every project |
 | PostToolUse on `Bash`, `mcp__sdd__search`, `mcp__sdd__view`, `mcp__sdd__start_procedure`, `mcp__sdd__next` | `record` | credits the reads the call performed; after the session's own capture (`sdd-capture` printing `<id>.md`, or a `next` result carrying `produced.entryId`), moves the ledger to the new graph state when that entry is the only change, keeping the reads; keeps the body and topics an engine capture's start or report left it with (`recordEngineCapture`) |
 | PostToolUse on `mcp__sdd__stage_attachment` | `record` | where `.sdd/grounding.yaml` sets `draft_lint`: keeps the text the staging left under the handle sdd answered with (`recordStaged`) |
 | PostToolUse on `Write`, `Edit` | `record` | grounds a draft saved under a `drafts/` (or `draft/`) directory while every read stands, hashing the file as saved |
@@ -31,6 +31,7 @@ at once where `grounding_gate_enabled` is off or no graph governs the project.
 | PostToolUse on `mcp__sdd__.*` | `collapse` | replaces an answer carrying sdd's structured fields with its collapsed form through `hookSpecificOutput.updatedMCPToolOutput` (`internal/collapse`), and marks what it printed in full in the calling agent's set |
 | PreToolUse on `Agent`, `Task` | `spawn` | for `subagent_type: fork`, keeps the spawner's set under the call's `tool_use_id` |
 | SessionEnd | `end` | removes the session's ledger and its shown sets |
+| none: `start` and `check` run it detached, at most once a day | `prune` | deletes the plugin's release folders no session may still run, prints `deleted <folder>` for each, and records the run in `<data>/release-prune.json`; exits 1 on stderr where the run failed; reads no payload and works whatever the project, and touches nothing without `CLAUDE_PLUGIN_DATA` and `CLAUDE_PLUGIN_ROOT` |
 
 ## The ledger
 

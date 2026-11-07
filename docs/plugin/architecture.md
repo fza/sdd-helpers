@@ -35,9 +35,10 @@ A process allowed to write a repository's committed files can plant a link where
 goes. So every file sdd-helpers creates, opens for writing, renames or makes a folder for below a
 root goes through `internal/safefs`. The roots are the cache home (`$XDG_CACHE_HOME/sdd-helpers`,
 `~/.cache/sdd-helpers` where unset, holding `sdd-caps.json`), a checkout's top folder (a draft's
-lint body) and the folder holding a graph's directory (`.sdd/tmp/capture.lock`, the grounding gate's
-ledgers and shown sets). A root and every folder above it are the owner's and may be links: a
-symlinked `~/.cache` keeps working.
+lint body), the folder holding a graph's directory (`.sdd/tmp/capture.lock`, the grounding gate's
+ledgers and shown sets) and the plugin's data directory (the release prune's status, its locks, and
+the release folders it renames and removes). A root and every folder above it are the owner's and
+may be links: a symlinked `~/.cache` keeps working.
 
 Below the root no path is opened whole. Each component is lstat-checked, refused as a link, opened
 relative to its parent's descriptor through `os.Root` and held to the checked folder, so a folder
@@ -80,8 +81,56 @@ stands in, so the gate refuses every call, saying the plugin names no release ye
 
 The archive holds `sdd-grounding-gate` and `sdd-capture`, one program per binary. It is unpacked in
 the fetch's work directory and renamed into place, so a version directory is complete or absent.
-Release folders stay in the data directory until removed by hand: a session still running an older
-plugin version runs that version's programs, and without them its gate refuses every call.
+
+## Release pruning
+
+Each release unpacks into a folder of its own, and the launcher never removes one, so the daily
+release prune (`internal/releaseprune`) deletes the folders no session may still run. A session
+still running an older plugin version runs that version's programs, and without them its gate
+refuses every call, so a folder goes only once no session can need it. Kept:
+
+- the version `plugin/.claude-plugin/plugin.json` names;
+- every version a running process whose name starts with `sdd-` executes a program from, read from
+  the process table through the kernel (`sysctl` `kern.proc.uid` and `kern.procargs2` on darwin,
+  `/proc/<pid>/stat` and `/proc/<pid>/exe` on Linux), a zombie or exiting process left out. A path
+  counts against the data directory as named and with every link resolved, since darwin reports the
+  path a process was started from and Linux the resolved one;
+- every version a SessionStart used within 14 days. The launcher writes `<data>/<version>/used`
+  before it runs a binary of that version at a SessionStart, whichever version runs: the named one,
+  one just fetched, or one standing in. The mark is written by the shell's builtin `echo`, so it
+  spawns no process; a folder the session cannot write, as in a sandboxed job, keeps its mark as it
+  was and the binary still runs.
+
+A run that cannot read the plugin's named version or the process table keeps every release. Only a
+folder named as a version (`^[0-9]+\.[0-9]+\.[0-9]+$`) is ever removed: a link, a file, a
+`.fetch-` lock or work directory, and every other name stay. A folder is renamed to
+`.pruned-<version>` and then removed, so the launcher never finds half a version under its name; a
+`.pruned-<version>` folder a crash left is removed first. The data directory is the root of every
+rename and removal through `internal/safefs`: a link to it is followed, none below it ever is.
+
+`sdd-grounding-gate start` and `sdd-grounding-gate check` both start the prune. Each reads
+`<data>/release-prune.json` and, where no run started within the last day, stamps the start under
+`<data>/release-prune.lock`, taken without waiting, then starts `sdd-grounding-gate prune` from its
+own executable in a session of its own, its output discarded, so no hook waits for it; of the
+SessionStart hooks of every session asking, the first alone starts one. On a day the run started
+already, the check is one read of the status. The run inherits `CLAUDE_PLUGIN_DATA` and
+`CLAUDE_PLUGIN_ROOT`, holds `<data>/release-prune.run.lock` so a second run exits at once, stops
+after five minutes, and records its outcome in `release-prune.json`:
+
+| Key | Holds |
+|---|---|
+| `started` | when the day's run was claimed |
+| `finished` | when the run ended |
+| `deleted` | each release folder it removed |
+| `error` | why the run failed, where it did |
+| `warned` | a SessionStart told the error already |
+| `denied` | how much the run was not allowed to read or touch, as in a sandbox; such a run is claimed again an hour later rather than a day |
+
+The next `start` or `check` prints a failed run's error once, as `sdd-helpers: release prune failed
+at <finished>: <error>; see <data>/release-prune.json`, and sets `warned`, so a failure is told once
+until a run fails anew. `start` works only in a project carrying a graph, with the gate on; `check`
+runs at every session start in every project, whatever the gate's switch, so a machine that never
+opens a graph project, or has the gate off, still prunes. The day's claim keeps the two to one run.
 
 ## The fetch lock
 

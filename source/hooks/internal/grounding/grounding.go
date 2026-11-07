@@ -37,13 +37,17 @@
 //	        capture until every read stands or its draft is grounded
 //	start   SessionStart: removes ledgers of sessions gone a week, after a
 //	        compaction forgets the reads, and after a compaction, `/clear`
-//	        or resume empties the main thread's shown set
+//	        or resume empties the main thread's shown set; tells a failed
+//	        release prune once and starts the day's prune
 //	end     SessionEnd: removes the ending session's ledgers and shown sets
 //	collapse PostToolUse on sdd's MCP tools: shortens the answer to what the
 //	        calling agent was not shown already (internal/collapse)
 //	spawn   PreToolUse on Agent: keeps a fork its spawner's shown set
 //	check   SessionStart: names what is off or misplaced on the machine
 //	        (internal/pieces), whether or not the gate is on
+//	prune   started detached by start at most once a day: deletes the
+//	        plugin's release folders no session may still run
+//	        (internal/releaseprune)
 package grounding
 
 import (
@@ -67,6 +71,7 @@ import (
 	"github.com/fza/sdd-helpers/source/hooks/internal/hookio"
 	"github.com/fza/sdd-helpers/source/hooks/internal/pieces"
 	"github.com/fza/sdd-helpers/source/hooks/internal/pluginconfig"
+	"github.com/fza/sdd-helpers/source/hooks/internal/releaseprune"
 	"github.com/fza/sdd-helpers/source/hooks/internal/sddcaps"
 	"github.com/fza/sdd-helpers/source/hooks/internal/shellwalk"
 )
@@ -74,7 +79,7 @@ import (
 //go:embed refusals
 var refusals embed.FS
 
-var ErrUsage = errors.New("usage: sdd-grounding-gate record|gate|start|end|collapse|spawn|check")
+var ErrUsage = errors.New("usage: sdd-grounding-gate record|gate|start|end|collapse|spawn|check|prune")
 
 const (
 	graphDirName = ".sdd"
@@ -161,6 +166,12 @@ type Env struct {
 	// SddValues reads sdd's `sessions.token_saving` at a session's start;
 	// left nil, collapsing never runs.
 	SddValues SddValues
+	// Starter and Executable start the day's release prune as this binary's
+	// `prune` mode; either left empty, none starts. Processes is the process
+	// table that prune reads; left nil, it keeps every release.
+	Starter    releaseprune.Starter
+	Executable string
+	Processes  releaseprune.Processes
 }
 
 // SddValues answers what `sdd config get <key>` prints in dir, trimmed, or
@@ -216,16 +227,27 @@ func (env Env) graphProject() graphconfig.Project {
 // that does not parse keeps the gate on, since whether the project switched it
 // off is part of what the file says.
 func Main(ctx context.Context, args []string, env Env, streams hookio.Streams) int {
-	if len(args) != 1 || !slices.Contains([]string{"record", "gate", "start", "end", "collapse", "spawn", "check"}, args[0]) {
+	if len(args) != 1 || !slices.Contains([]string{"record", "gate", "start", "end", "collapse", "spawn", "check", releaseprune.Command}, args[0]) {
 		_, _ = fmt.Fprintln(streams.Err, ErrUsage)
 
 		return 1
 	}
 
+	// check runs in every project whatever the gate's switch, and the release
+	// folders belong to the machine, so it starts the day's prune as well:
+	// a machine that never opens a graph project, or has the gate off, still
+	// cleans up. The day's claim keeps start and check to one run.
 	if args[0] == "check" {
-		return pieces.Check(ctx, pieces.Env{
+		code := pieces.Check(ctx, pieces.Env{
 			Settings: env.Settings, Getenv: env.Getenv, SddValues: env.SddValues, Dir: env.project(),
 		}, streams)
+		startPrune(ctx, env, streams)
+
+		return code
+	}
+
+	if args[0] == releaseprune.Command {
+		return prune(ctx, env, streams)
 	}
 
 	if !pieces.GroundingGate.On(env.options()) || env.graphDir() == "" {
@@ -250,6 +272,7 @@ func Main(ctx context.Context, args []string, env Env, streams hookio.Streams) i
 		}
 
 		env.collapseStore().Switch(payload.SessionID, env.tokenSavingOff(ctx))
+		startPrune(ctx, env, streams)
 	}
 
 	config, err := env.config()

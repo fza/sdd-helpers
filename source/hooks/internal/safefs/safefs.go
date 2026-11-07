@@ -13,6 +13,7 @@ package safefs
 import (
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path"
@@ -148,6 +149,28 @@ func (held *Dir) FileInfo(name string) (fs.FileInfo, error) {
 	}
 
 	return checked, nil
+}
+
+// Entries lists held's own entries, at most WalkFiles of them, each as the
+// folder names it: a link is listed as a link, never followed.
+func (held *Dir) Entries() ([]fs.DirEntry, error) {
+	opened, err := held.root.Open(".")
+	if err != nil {
+		return nil, fmt.Errorf("listing %s: %w", held.path, err)
+	}
+
+	defer func() { _ = opened.Close() }()
+
+	listed, err := opened.ReadDir(WalkFiles + 1)
+	if err != nil && !errors.Is(err, io.EOF) {
+		return nil, fmt.Errorf("listing %s: %w", held.path, err)
+	}
+
+	if len(listed) > WalkFiles {
+		return nil, fmt.Errorf("%s %w", held.path, ErrTooMany)
+	}
+
+	return listed, nil
 }
 
 // Walked is one regular file a walk found, by its slash path below the walk's
