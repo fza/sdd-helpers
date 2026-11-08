@@ -21,8 +21,12 @@ skill carrying what it cannot say in a one-line refusal.
 
 | Skill | Carries |
 |---|---|
-| `sdd-helpers:grounding` | the sdd reads that open the gate, how deep to read an entry and why, which reference kind is the sharp one, and what each refusal means |
-| `sdd-helpers:capture` | which capture path a session takes, the draft's shape, what runs before an sdd entry is written, and what each refusal and exit code means |
+| `sdd-helpers:grounding` | the sdd reads that open the gate, how deep to read an entry and why, which reference kind is the sharp one, and the gate's note; in `references/`, the `.sdd/grounding.yaml` keys the reads follow and what every other refusal means |
+| `sdd-helpers:capture` | which capture path a session takes, what an entry carries, and the project's rules on an engine capture; in `references/sdd-capture.md`, the draft's shape, what runs before `sdd-capture` writes an entry, and what each of its refusals and exit codes means |
+
+A skill's `SKILL.md` holds what bears on every load; what bears only in one situation (a refusal,
+a project key, the `sdd-capture` path where sdd's engine serves the project) sits in a reference
+file `SKILL.md` links, read only when that situation shows up.
 
 Each skill is the whole of its rules. A global instruction file names the skill and says to load it;
 it never restates what the skill holds, because two copies drift and a reader obeys whichever they

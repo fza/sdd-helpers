@@ -22,8 +22,8 @@ var skillBudgets = []struct {
 	budget int
 	reason string
 }{
-	{"capture", 14500, "14.0k when set: the capture paths, the draft's shape and every refusal sdd-capture prints"},
-	{"grounding", 13300, "12.6k when set: both search modes, read depths, ref kinds and every gate refusal"},
+	{"capture", 4300, "4.0k when set: which capture path, what an entry carries, the engine capture's project rules; sdd-capture itself lives in references/sdd-capture.md"},
+	{"grounding", 4900, "4.6k when set: the three reads, read depths, body as lead, ref kinds, the gate's note; config keys and every other refusal live in references/"},
 }
 
 func budgetsBySkill() map[string]int {
