@@ -200,6 +200,20 @@ the test fails where a `SKILL.md` exceeds its budget, where a skill has none, an
 names no skill. Raising one is a change of its own, stating what the added text earns. Rejected: one
 budget for the whole skill directory, under which one file's growth hides behind another's cut.
 
+## Skill format
+
+Every skill the plugin ships meets the [Agent Skills specification](https://agentskills.io/specification),
+so any agent reading that format loads it, not only Claude Code. `test.SpecBreaches`
+(`source/hooks/test/skillspec.go`) checks each skill directory, and
+`source/hooks/internal/plugin/skillspec_test.go` fails on any breach: a frontmatter field outside
+`name`, `description`, `license`, `compatibility`, `metadata` and `allowed-tools`; a `name` that is
+not lowercase letters, digits and single hyphens of at most 64 characters, or that differs from its
+directory; a `description` empty or past 1024 characters; `license`, `compatibility` or
+`allowed-tools` that is no string, or a `compatibility` past 500 characters; `metadata` that is no
+map of strings; a body past 500 lines; a link that leaves the skill or names no file in it; and a
+file in the skill that `SKILL.md` links to nowhere, which an agent would never find. `skill-validator
+check plugin/skills` runs the same checks and more from outside the tree.
+
 ## Tests
 
 ```bash
