@@ -1,0 +1,51 @@
+{
+  "release": "v1.1.2",
+  "at": "2026-11-09T08:28:21Z",
+  "calls": [
+    {
+      "args": [
+        "gate"
+      ],
+      "stdin": "{\"session_id\":\"a1a1a1a1-0000-4000-8000-000000000001\",\"tool_input\":{\"questions\":[]},\"tool_name\":\"AskUserQuestion\"}",
+      "code": 0,
+      "stdout": "{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"GROUNDING GATE: let through, reads owed before the next question or draft.\\n\\nOwed since the graph last changed:\\nlisting of every topic\\n  sdd view --layout \\\"active:as-counts\\\"\\n\"}}\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collapse"
+      ],
+      "stdin": "{\"session_id\":\"a1a1a1a1-0000-4000-8000-000000000001\",\"tool_input\":{\"query\":\"gate\"},\"tool_name\":\"mcp__sdd__search\",\"tool_response\":{\"coverage\":[{\"project\":\"github.com/fza/sdd-helpers\",\"complete\":true}],\"results\":\"\",\"hits\":[{\"id\":\"20261029-021515-d-tac-00q\",\"title\":\"Token-cost criteria for sdd-helpers surfaces\",\"kind\":\"directive\",\"layer\":\"tactical\",\"status\":\"active\",\"summary\":\"Token-cost choices are made by least risk first, then fewest tokens.\",\"score\":0.91},{\"id\":\"20261031-122251-s-tac-jgs\",\"title\":\"Token savings from repetition removal and runnable pointers\",\"kind\":\"insight\",\"layer\":\"tactical\",\"status\":\"open\",\"summary\":\"Savings came from removing repetition, never from shortening what an agent acts on.\",\"score\":0.77}]}}",
+      "code": 0,
+      "stdout": "{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"updatedToolOutput\":\"{\\\"coverage\\\":[{\\\"project\\\":\\\"github.com/fza/sdd-helpers\\\",\\\"complete\\\":true}],\\\"hits\\\":[{\\\"id\\\":\\\"20261029-021515-d-tac-00q\\\",\\\"score\\\":0.91,\\\"shown_earlier\\\":true,\\\"title\\\":\\\"Token-cost criteria for sdd-helpers surfaces\\\"},{\\\"id\\\":\\\"20261031-122251-s-tac-jgs\\\",\\\"score\\\":0.77,\\\"shown_earlier\\\":true,\\\"title\\\":\\\"Token savings from repetition removal and runnable pointers\\\"}],\\\"results\\\":\\\"\\\",\\\"shown_earlier_note\\\":\\\"pieces marked shown_earlier repeat text this agent was already shown unchanged; show an entry by its id, or resume_session, prints it in full\\\"}\"}}",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "start"
+      ],
+      "stdin": "{\"session_id\":\"a1a1a1a1-0000-4000-8000-000000000001\",\"source\":\"compact\"}",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "gate"
+      ],
+      "stdin": "{\"session_id\":\"a1a1a1a1-0000-4000-8000-000000000001\",\"tool_input\":{\"command\":\"sdd-capture .tmp/drafts/gate-notes.md\"},\"tool_name\":\"Bash\"}",
+      "code": 2,
+      "stdout": "",
+      "stderr": "GROUNDING GATE: refused. Run the reads owed, then run this call again.\n\nOwed since the graph last changed:\n`--query` search\n  sdd search --query '\u003csubject\u003e' --limit 5 --max-citations 0\n`--term` search\n  sdd search --term '\u003cliteral\u003e' --limit 5 --max-citations 0\nlisting of every topic\n  sdd view --layout \"active:as-counts\"\n\nEmpty search ≠ absence; a listing settles membership.\n"
+    },
+    {
+      "args": [
+        "gate"
+      ],
+      "stdin": "{\"session_id\":\"a1a1a1a1-0000-4000-8000-000000000001\",\"tool_input\":{\"questions\":[]},\"tool_name\":\"AskUserQuestion\"}",
+      "code": 0,
+      "stdout": "{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"GROUNDING GATE: let through, reads owed before the next question or draft.\\n\\nOwed since the graph last changed:\\n`--query` search\\n  sdd search --query '\\u003csubject\\u003e' --limit 5 --max-citations 0\\n`--term` search\\n  sdd search --term '\\u003cliteral\\u003e' --limit 5 --max-citations 0\\nlisting of every topic\\n  sdd view --layout \\\"active:as-counts\\\"\\n\\nEmpty search ≠ absence; a listing settles membership.\\n\"}}\n",
+      "stderr": ""
+    }
+  ]
+}
