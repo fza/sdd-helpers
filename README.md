@@ -1,5 +1,60 @@
 # sdd-helpers
 
+> [!WARNING]
+> **sdd-helpers is deprecated.** sdd now does its work itself: switch to the
+> [fza/sdd fork](https://github.com/fza/sdd), `v0.18.0-alpha.3.fza.43` or later, or keep upstream
+> [networkteam/sdd](https://github.com/networkteam/sdd), then uninstall this plugin.
+> [How to switch](#deprecated).
+
+## Deprecated
+
+The fza/sdd fork, from `v0.18.0-alpha.3.fza.43`, gates graph writes itself. Its capture procedure
+holds the write until the reads made through `gather` are complete, scans every entry and
+attachment for credentials, and collapses sdd output the agent was already shown. A file staged
+with `stage_attachment` becomes an entry's body through `bodyHandle`. The fork's
+`verify.mode` (`off`, `grounding`, `prose`, `deep`) sets how much it checks.
+
+**Switching to the fork:**
+
+```bash
+brew uninstall --cask sdd                  # only where networkteam's sdd cask is installed
+brew install --cask fza/tap/sdd
+claude plugin uninstall sdd-helpers@sdd-helpers
+claude plugin marketplace remove sdd-helpers
+```
+
+Without Homebrew, pass the tag: every fork release is a prerelease, so there is no `latest`. The
+binary goes to `~/.local/bin` (`-b <dir>` changes it); run it again with a newer tag to upgrade.
+
+```bash
+curl -sL https://github.com/fza/sdd/releases/download/v0.18.0-alpha.3.fza.43/install.sh \
+  | sh -s -- v0.18.0-alpha.3.fza.43
+```
+
+**Keeping upstream sdd** works too, without any gate: upstream has no `gather`, no grounding check,
+no credential scan and no collapse of repeated output.
+
+**What the fork does not cover:**
+
+| sdd-helpers | In the fork |
+|---|---|
+| reads owed before a question or a draft edit | none: the fork gates the capture only |
+| a pre-flight falling back to other models | none: `llm.retry.*` retries one model, and the `claude-cli` provider ignores it |
+| capture from a draft file on the command line | none: `sdd new` takes no body file; over MCP, `stage_attachment` and `bodyHandle` |
+| deleting a captured draft file | none for files an agent writes itself; staged files go with their session after `sessions.retention` |
+| the `listing_prefix` topic rule and `draft_lint` | an sdd hook on `capture.assemble` with `findings: true`, reading `draft.topics` |
+
+`.sdd/grounding.yaml` is not read by sdd and carries nothing over: its read depths map to
+`verify.depth.*`, its rules to sdd hooks.
+
+**While it stays installed**, every session start says sdd-helpers is deprecated. Where
+`sdd config get verify.mode` prints a value other than `off`, the grounding gate and `sdd-capture`
+stand aside, since a second gate only costs reads the fork does not credit and can stall its
+capture. With upstream sdd, or `verify.mode` set to `off`, both work as before
+([standing aside](docs/plugin/usage.md#standing-aside)).
+
+## What it does
+
 Your project keeps its decisions in an [sdd](https://github.com/networkteam/sdd) graph, but your
 coding agent does not read it unless made to. Asked about a past decision, it answers from the one
 entry it happened to open, or from what it believes the graph holds. It drafts a new decision that
@@ -71,7 +126,7 @@ claude plugin install sdd-helpers@sdd-helpers
   `/plugin install sdd-helpers --marketplace fza/sdd-helpers`.
 - **To pin a release**, add the marketplace as `fza/sdd-helpers#v<version>`.
 - **Installed at user scope**, the plugin runs in every project on the machine, and stays silent in
-  each one without a graph.
+  each one without a graph, but for the deprecation line at each session start.
 - **Turn auto-update on**, so every release arrives by itself. Claude Code leaves it off for this
   marketplace; add this to `~/.claude/settings.json` (or turn it on under `/plugin`, Marketplaces):
 
@@ -104,7 +159,7 @@ Without Homebrew:
 curl -sL https://github.com/networkteam/sdd/releases/latest/download/install.sh | sh
 ```
 
-**Optional: the fork [github.com/fza/sdd](https://github.com/fza/sdd)** (`brew install fza/tap/sdd`).
+**Optional: the fork [github.com/fza/sdd](https://github.com/fza/sdd)** (`brew install --cask fza/tap/sdd`).
 sdd-helpers works with stock sdd, and uses the fork's extras wherever the installed `sdd` offers
 them. [`docs/plugin/usage.md`](docs/plugin/usage.md#sdd) lists them.
 
@@ -156,18 +211,6 @@ sdd-helpers: grounding gate is off, so sdd-capture is off; turn grounding_gate_e
 | Turned off | Also off | Because |
 |---|---|---|
 | `grounding_gate_enabled` | `sdd-capture` | Its grounding check is the gate's hook; without it, a draft lands unchecked |
-
-## Moving over from agentic-helpers
-
-Both programs came from the agentic-helpers plugin, where they were named `agentic-grounding-gate`
-and `agentic-capture`. Install sdd-helpers and switch the two pieces off in agentic-helpers, or
-remove that plugin, so no project is gated twice.
-
-- **The options keep their keys**: `grounding_gate_enabled`, `capture_enabled`,
-  `capture_remove_draft`, read from `pluginConfigs["sdd-helpers@sdd-helpers"]`.
-- **`.sdd/grounding.yaml` keeps its keys**, but for `exempt_seats`, which is gone with no
-  replacement: `enabled: false` is the only per-project opt-out.
-- **Scripts and instructions** naming `agentic-capture` name `sdd-capture` instead.
 
 ## Development
 
