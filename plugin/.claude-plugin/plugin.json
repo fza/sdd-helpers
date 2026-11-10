@@ -1,6 +1,6 @@
 {
   "name": "sdd-helpers",
-  "description": "A grounding gate holding sdd decision-graph writes and owner questions to real reads of the graph, and checked graph captures from a draft file, each with a skill",
+  "description": "Deprecated: the fza/sdd fork (v0.18.0-alpha.3.fza.43 or later) or upstream sdd replaces it. A grounding gate holding sdd decision-graph writes and owner questions to real reads of the graph, and checked graph captures from a draft file, each with a skill",
   "author": {
     "name": "Felix Zandanel"
   },

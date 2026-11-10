@@ -78,14 +78,17 @@ The session start that failed to fetch says why, once.
 
 ## What each session start says
 
-`sdd-grounding-gate check` runs at every session start, whether or not the gate is on, and prints
-nothing where all is well. Each line opens `sdd-helpers: `:
+`sdd-grounding-gate check` runs at every session start, whether or not the gate is on. It prints
+one deprecation line in every project, and a line for each thing that is wrong. Each line opens
+`sdd-helpers: `:
 
 | Line | When |
 |---|---|
+| ``sdd-helpers: deprecated: sdd from the fza/sdd fork v0.18.0-alpha.3.fza.43 does its work; switch to it (`brew install --cask fza/tap/sdd`) or keep upstream sdd, then `claude plugin uninstall sdd-helpers@sdd-helpers` `` | every session start, but where the next line stands in for it |
+| ``sdd-helpers: deprecated and standing aside: sdd's verify.mode is `<mode>`, so sdd gates graph writes itself and the grounding gate and sdd-capture are off; `claude plugin uninstall sdd-helpers@sdd-helpers` removes it`` | the project carries a graph, the gate is on, and `sdd config get verify.mode` prints a value other than `off` ([standing aside](#standing-aside)) |
 | `sdd-helpers: grounding gate is off, so sdd-capture is off; turn grounding_gate_enabled on to restore it` | `grounding_gate_enabled` is off while `capture_enabled` is on |
 | `sdd-helpers: <why>`, naming the settings file and the key | a settings file cannot be read or parsed, or sets an option to no boolean; every option then reads as its default |
-| ``sdd-helpers: sdd's sessions.token_saving is on, so the grounding gate's per-agent collapse of repeated sdd output is off; `sdd config set sessions.token_saving off` turns it on`` | the project carries a graph, the gate is on, and `sdd config get sessions.token_saving` prints `on` ([collapsing](../grounding-gate/usage.md#repeated-sdd-output-collapses)) |
+| ``sdd-helpers: sdd's sessions.token_saving is on, so the grounding gate's per-agent collapse of repeated sdd output is off; `sdd config set sessions.token_saving off` turns it on`` | the project carries a graph, the gate is on and not standing aside, and `sdd config get sessions.token_saving` prints `on` ([collapsing](../grounding-gate/usage.md#repeated-sdd-output-collapses)) |
 | `sdd-helpers: <dir> on the PATH holds <names>, which every project's Bash runs ahead of the plugin; remove them` | a `PATH` directory outside `/.claude/plugins/` holds `sdd-capture` or `sdd-grounding-gate`; one line per directory |
 
 The session start adds one line, once, after a release prune failed, in any project:
@@ -112,6 +115,27 @@ time and size.
 | `sdd migrate` | a graph on schema 2 is refused; a schema refusal names no `sdd migrate` |
 | `sdd init --project-dir` | the gate's engine refusal skips a project naming `project_dir` |
 | `sdd info --format json` | `sdd-capture` reads a titled draft's graph schema from `.sdd/meta.json` instead of asking sdd |
+
+### Standing aside
+
+sdd-helpers is deprecated. The fork, from `v0.18.0-alpha.3.fza.43`, gates graph writes itself: its
+capture procedure holds the write until the reads made through `gather` are complete, scans the
+entry for credentials and collapses repeated output. A second gate on top only costs reads the fork
+does not credit, and can stall the fork's own capture, since the gate hooks `start_procedure` and
+`next`.
+
+So wherever `sdd config get verify.mode`, run in the project, prints a value other than `off`, both
+pieces stand aside:
+
+- **the grounding gate** lets every call through, records no reads and collapses no output; only
+  `end` still removes the ending session's ledgers;
+- **`sdd-capture`** refuses, exit 1: ``sdd-capture: off while sdd gates graph writes itself
+  (verify.mode `<mode>`); capture through sdd's own capture procedure instead``.
+
+Stock sdd and fork releases before `v0.18.0-alpha.3.fza.43` know no `verify.mode` and print
+nothing, so there both pieces work as before. The mode is read, never the version: earlier fork
+releases carry the fork's version suffix without the gate. The gate asks sdd on each hook call, so
+a changed `verify.mode` takes effect on the next call.
 
 ## Options
 

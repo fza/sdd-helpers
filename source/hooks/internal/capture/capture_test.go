@@ -14,6 +14,7 @@ import (
 	"github.com/fza/sdd-helpers/source/hooks/internal/capture"
 	"github.com/fza/sdd-helpers/source/hooks/internal/filelock"
 	"github.com/fza/sdd-helpers/source/hooks/internal/graphconfig"
+	"github.com/fza/sdd-helpers/source/hooks/internal/pieces"
 	"github.com/fza/sdd-helpers/source/hooks/internal/process"
 	"github.com/fza/sdd-helpers/source/hooks/test"
 )
@@ -33,6 +34,9 @@ type fixture struct {
 	settings string
 	// working is the directory the capture runs from, root where empty.
 	working string
+	// values answers `sdd config get` where sdd-capture reads verify.mode;
+	// nil reads none.
+	values *test.SddValues
 }
 
 type result struct {
@@ -82,6 +86,10 @@ func (f *fixture) runIn(ctx context.Context, args ...string) result {
 	env := capture.Env{WorkingDir: working, Runner: f.runner, Limit: f.limit, Pause: f.pauses.Pause, Git: f.repo, TempRoot: f.temp, Margin: time.Millisecond}
 	if f.settings != "" {
 		env.Settings = []string{f.settings}
+	}
+
+	if f.values != nil {
+		env.SddValues = f.values
 	}
 
 	code := capture.Main(ctx, args, env, captured.Streams(""))
@@ -1034,6 +1042,45 @@ func TestCaptureOffOnTheMachine(t *testing.T) {
 
 			if code != 1 || strings.TrimSpace(captured.Err.String()) != tc.says || len(runner.Calls) != 0 {
 				t.Errorf("capture should refuse, naming the option, and run nothing, got %d %q", code, captured.Err.String())
+			}
+		})
+	}
+}
+
+func TestCaptureStandsAsideWhereSddGatesGraphWrites(t *testing.T) {
+	cases := []struct {
+		name  string
+		mode  string
+		aside bool
+	}{
+		{name: "the fork's default", mode: "prose", aside: true},
+		{name: "deep", mode: "deep", aside: true},
+		{name: "the fork's gate off", mode: "off"},
+		{name: "an sdd without the key"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			f := newFixture(t, "")
+			f.values = &test.SddValues{Values: map[string]string{}}
+
+			if tc.mode != "" {
+				f.values.Values["verify.mode"] = tc.mode
+			}
+
+			got := f.run(f.draft("capture/full.md"))
+			written := len(f.runner.CallsOf("capture")) > 0
+
+			if tc.aside {
+				if got.code != 1 || strings.TrimSpace(got.stderr) != pieces.CaptureAside(tc.mode) || written {
+					t.Errorf("capture should refuse, naming sdd's own capture, and write nothing, got %+v", got)
+				}
+
+				return
+			}
+
+			if got.code != 0 || !written {
+				t.Errorf("capture should run as before where sdd does not gate graph writes, got %+v", got)
 			}
 		})
 	}

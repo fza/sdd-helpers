@@ -88,7 +88,7 @@ func TestCheckNamesEachBrokenTieAndUnreadableOptions(t *testing.T) {
 		settings []string
 		want     []string
 	}{
-		{name: "every tie whole says nothing", settings: settings(t, "")},
+		{name: "every tie whole says only the deprecation", settings: settings(t, "")},
 		{name: "a broken tie", settings: settings(t, `"grounding_gate_enabled":false`), want: []string{pieces.CaptureGrounded.Line()}},
 		{name: "options that cannot be read", settings: settings(t, `"capture_enabled":"sometimes"`),
 			want: []string{"sdd-helpers: reading the sdd-helpers@sdd-helpers options in "}},
@@ -98,8 +98,13 @@ func TestCheckNamesEachBrokenTieAndUnreadableOptions(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			out := check(t, pieces.Env{Settings: tc.settings})
 
-			if len(tc.want) == 0 && out != "" {
-				t.Errorf("check should print nothing where nothing is wrong, got:\n%s", out)
+			deprecated := "sdd-helpers: " + pieces.DeprecatedLine + "\n"
+			if !strings.HasPrefix(out, deprecated) {
+				t.Errorf("check should open on the deprecation line, got:\n%s", out)
+			}
+
+			if len(tc.want) == 0 && out != deprecated {
+				t.Errorf("check should print nothing but the deprecation where nothing is wrong, got:\n%s", out)
 			}
 
 			for _, want := range tc.want {

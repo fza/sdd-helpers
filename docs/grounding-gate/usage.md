@@ -5,6 +5,12 @@ what it believes the graph holds. Both are how a wrong answer gets written down 
 
 ## What it refuses
 
+**Where sdd gates graph writes itself, the gate stands aside.** sdd-helpers is deprecated: wherever
+`sdd config get verify.mode` prints a value other than `off` (the fza/sdd fork from
+`v0.18.0-alpha.3.fza.43`), the gate refuses nothing, records no reads and collapses no output
+([standing aside](../plugin/usage.md#standing-aside)). Everything below holds with upstream sdd, or
+with `verify.mode` set to `off`.
+
 The gate holds a question, a draft edit or an `sdd-capture` call to real reads of the graph: a
 literal search and a semantic one, because each misses what the other finds, and a listing, because
 an empty search result is never evidence of absence. A project naming a topic prefix in

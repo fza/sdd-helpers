@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/fza/sdd-helpers/source/hooks/internal/grounding"
+	"github.com/fza/sdd-helpers/source/hooks/internal/pieces"
 	"github.com/fza/sdd-helpers/source/hooks/test"
 )
 
@@ -51,8 +52,8 @@ func TestTheCheckSpeaksWithTheGateOffAndNoGraph(t *testing.T) {
 	env.WorkingDir = env.ProjectDir
 
 	got := runRaw(t, env, "check", "")
-	if got.code != 0 || got.stdout != "sdd-helpers: grounding gate is off, so sdd-capture is off; "+
-		"turn grounding_gate_enabled on to restore it\n" {
+	if got.code != 0 || got.stdout != "sdd-helpers: "+pieces.DeprecatedLine+"\n"+
+		"sdd-helpers: grounding gate is off, so sdd-capture is off; turn grounding_gate_enabled on to restore it\n" {
 		t.Errorf("the check should name a broken tie whatever the gate and the project, got: %+v", got)
 	}
 }

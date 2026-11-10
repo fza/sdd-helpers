@@ -129,7 +129,7 @@ func TestStockSddRefusesWhatOnlyTheForkWrites(t *testing.T) {
 			}
 
 			got := f.run(append([]string{f.draft(tc.draft)}, tc.args...)...)
-			if got.code != 1 || !strings.Contains(got.stderr, tc.says) || !strings.Contains(got.stderr, "brew install fza/tap/sdd") {
+			if got.code != 1 || !strings.Contains(got.stderr, tc.says) || !strings.Contains(got.stderr, "brew install --cask fza/tap/sdd") {
 				t.Errorf("the capture should be refused, naming the fork, got: %+v", got)
 			}
 
@@ -208,7 +208,7 @@ func TestSddInfoSaysWhetherTheGraphTakesTitles(t *testing.T) {
 		{name: "no titles", info: process.Result{Stdout: `{"graph_schema": 1, "capabilities": {"titles": false}}`},
 			meta: `{"graph_schema_version": 2}`, says: []string{"the graph is on schema 1, which has no entry titles", "sdd migrate"}},
 		{name: "a graph newer than the binary", info: process.Result{Stdout: `{"graph_schema": 3, "capabilities": null}`},
-			says: []string{"newer than this sdd writes", "brew install fza/tap/sdd"}},
+			says: []string{"newer than this sdd writes", "brew install --cask fza/tap/sdd"}},
 		{name: "a failed run", info: process.Result{Code: 1, Stderr: "graph not found"},
 			says: []string{"whether the graph takes entry titles is unknown", "graph not found"}},
 	}

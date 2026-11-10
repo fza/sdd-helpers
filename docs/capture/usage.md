@@ -29,6 +29,13 @@ local scope, outside `.mcp.json`, goes unseen. The project's `draft_lint` and `l
 still hold on the engine's capture: the grounding gate applies them to its reports
 ([the gate](../grounding-gate/usage.md#a-capture-through-sdds-engine)).
 
+**Where sdd gates graph writes itself, `sdd-capture` stands aside.** sdd-helpers is deprecated:
+wherever `sdd config get verify.mode` prints a value other than `off` (the fza/sdd fork from
+`v0.18.0-alpha.3.fza.43`), every capture is refused before anything runs, exit 1:
+``sdd-capture: off while sdd gates graph writes itself (verify.mode `<mode>`); capture through
+sdd's own capture procedure instead`` ([standing aside](../plugin/usage.md#standing-aside)). `--help`
+still answers.
+
 ## What a draft must clear
 
 Before it writes, the draft clears four checks in turn: its header names what the call needs
@@ -59,7 +66,7 @@ writes to this graph take:
   key, or run `sdd migrate` to upgrade the graph`` (the number is the graph's schema);
 - `null`, a graph on a schema newer than the installed sdd → refused: ``the graph is on a schema
   newer than this sdd writes, so whether it takes entry titles is unknown; install the newer sdd with
-  `brew install fza/tap/sdd` ``;
+  `brew install --cask fza/tap/sdd` ``;
 - a run that fails or prints no JSON → refused: `whether the graph takes entry titles is unknown: `
   and what sdd printed.
 

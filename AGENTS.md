@@ -11,7 +11,7 @@ decision graph under `.sdd/`: the grounding gate, a hook holding graph writes un
 read the graph, and the command `sdd-capture`, writing an entry from a draft file. Each is paired
 with a skill that tells the agent what it is doing. They install once for every project on the
 machine and stay silent in a project without `.sdd/`, but for the session-start check naming what
-is off on the machine. [`README.md`](README.md) says what the
+is off on the machine and the deprecation line. [`README.md`](README.md) says what the
 repository is and how to install it; [`docs/`](docs/index.md) says how each piece is used and how it
 works.
 

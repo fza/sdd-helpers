@@ -51,6 +51,7 @@ func main() {
 		LookPath:   exec.LookPath,
 		Git:        process.Git{},
 		TempRoot:   "/tmp",
+		SddValues:  process.SddConfig{},
 	}
 	streams := hookio.Streams{In: os.Stdin, Out: os.Stdout, Err: os.Stderr}
 

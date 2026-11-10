@@ -8,7 +8,7 @@
     {
       "name": "sdd-helpers",
       "source": "./plugin",
-      "description": "The sdd grounding gate hooks, sdd-capture, and a skill for each"
+      "description": "Deprecated, replaced by the fza/sdd fork or upstream sdd: the sdd grounding gate hooks, sdd-capture, and a skill for each"
     }
   ]
 }

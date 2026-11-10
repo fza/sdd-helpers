@@ -11,6 +11,9 @@ questions, draft edits and captures until the graph was read. Off: `enabled: fal
 `.sdd/grounding.yaml` (project), plugin option `grounding_gate_enabled: false` (machine,
 `sdd-capture` off with it). Off → reads still owed, nothing enforces.
 
+sdd-helpers is deprecated. Session start says `deprecated and standing aside` → the fza/sdd fork
+gates captures itself: this gate is off, follow the `sdd` skill, reads through `gather`.
+
 ## Three reads
 
 Before every question, draft edit, capture. Credit holds until the graph changes or context

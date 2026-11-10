@@ -1,5 +1,12 @@
 # sdd-helpers
 
+> [!WARNING]
+> **sdd-helpers is deprecated.** sdd now does its work itself: switch to the
+> [fza/sdd fork](https://github.com/fza/sdd), `v0.18.0-alpha.3.fza.43` or later
+> (`brew install --cask fza/tap/sdd`), or keep upstream sdd, then
+> `claude plugin uninstall sdd-helpers@sdd-helpers`. Where the fork's `verify.mode` is not `off`,
+> both pieces stand aside. [How to switch](https://github.com/fza/sdd-helpers#deprecated).
+
 A Claude Code plugin for projects keeping an [sdd](https://github.com/networkteam/sdd) decision
 graph: a gate that makes the agent read the graph before it asks, drafts or writes to it, and a
 checked path for new graph entries. Each piece comes with a skill that explains it to the agent. The

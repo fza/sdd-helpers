@@ -164,6 +164,10 @@ type Env struct {
 	// Margin is how much longer than sdd's own bounds a try may run before it
 	// is cut off; zero means cutOffMargin.
 	Margin time.Duration
+	// SddValues reads sdd's `verify.mode`: where sdd gates graph writes
+	// itself, sdd-capture refuses and names sdd's own capture. Left nil, it
+	// never does.
+	SddValues pieces.SddValues
 }
 
 type request struct {
@@ -315,6 +319,15 @@ func Main(ctx context.Context, args []string, env Env, streams hookio.Streams) i
 		_, _ = fmt.Fprint(streams.Out, help)
 
 		return 0
+	}
+
+	// Where sdd gates graph writes itself, its own capture procedure is the
+	// checked path, and a second one only bypasses the reads sdd credits.
+	mode, aside := pieces.SddGates(ctx, env.SddValues, env.WorkingDir)
+	if aside {
+		_, _ = fmt.Fprintln(streams.Err, pieces.CaptureAside(mode))
+
+		return 1
 	}
 
 	if held.limit == 0 && env.Limit != "" {

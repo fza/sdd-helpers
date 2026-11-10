@@ -60,3 +60,7 @@ and every `mcp__sdd__next` to it (`params`, `report`, a chooser's `fields`).
 `sdd-capture: off on this machine (plugin option capture_enabled)` or
 `sdd-capture: off while grounding gate is off (plugin option grounding_gate_enabled)`: exit 1,
 nothing runs. Tell the user; never `sdd new` instead.
+
+`sdd-capture: off while sdd gates graph writes itself (verify.mode ...)`: sdd-helpers is
+deprecated, and the fza/sdd fork gates captures itself. Capture through sdd's engine
+(`mcp__sdd__start_procedure`, `canonical: capture`), its reads through `gather`.

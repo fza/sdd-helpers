@@ -57,7 +57,7 @@ Body. Markdown, unfenced.
 | grounding gate | project serves sdd's engine, no `cli_capture: true`; or reads owed, draft not grounded |
 | header | no `type`/`layer`/`confidence`; unknown key; `listing_prefix` set, no topic carries it |
 | credential scan | body, header value or attached file looks like a credential: `sdd-capture: refused. The capture holds what looks like a credential (<rule ids>, <where>, line <n>); the graph is shared and immutable`. Unreadable or `-:<name>` attachment → same prefix, the gate's wording (`sdd-helpers:grounding`). Runs again right before each `sdd new` |
-| sdd | none → `sdd-capture needs sdd on the PATH`, exit 1. A fork-only surface the installed sdd lacks → refused naming `brew install fza/tap/sdd`, exit 1. Drop the key, or the owner installs the fork |
+| sdd | none → `sdd-capture needs sdd on the PATH`, exit 1. A fork-only surface the installed sdd lacks → refused naming `brew install --cask fza/tap/sdd`, exit 1. Drop the key, or the owner installs the fork |
 | project lint | `draft_lint` reports, or fails saying nothing. Run from the project root on `.<draft>.body.md` beside the draft, findings shifted to the draft's lines |
 | pre-flight | `sdd new --dry-run` refuses; any `[high]` finding. Provider fault → retried. Skipped on a `--preflight-done` match |
 | capture | `sdd new --preflight-verified`, under `.sdd/tmp/capture.lock`. Runs once, never retried |

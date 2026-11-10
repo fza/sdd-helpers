@@ -24,7 +24,7 @@ import (
 
 const (
 	Fork         = "github.com/fza/sdd"
-	ForkInstall  = "brew install fza/tap/sdd"
+	ForkInstall  = "brew install --cask fza/tap/sdd"
 	StockInstall = "brew install networkteam/tap/sdd"
 )
 

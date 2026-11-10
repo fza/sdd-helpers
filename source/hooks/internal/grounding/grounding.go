@@ -163,8 +163,10 @@ type Env struct {
 	// Files reads the shell scripts a command runs, so a call inside one counts
 	// as the command's own; left nil, no script is read.
 	Files shellwalk.Files
-	// SddValues reads sdd's `sessions.token_saving` at a session's start;
-	// left nil, collapsing never runs.
+	// SddValues reads sdd's `verify.mode` on every call, the gate standing
+	// aside where sdd gates graph writes itself, and `sessions.token_saving`
+	// at a session's start; left nil, collapsing never runs and the gate never
+	// stands aside.
 	SddValues SddValues
 	// Starter and Executable start the day's release prune as this binary's
 	// `prune` mode; either left empty, none starts. Processes is the process
@@ -252,6 +254,16 @@ func Main(ctx context.Context, args []string, env Env, streams hookio.Streams) i
 
 	if !pieces.GroundingGate.On(env.options()) || env.graphDir() == "" {
 		return 0
+	}
+
+	// Where sdd gates graph writes itself, a second gate only costs reads sdd
+	// does not credit and can stall sdd's own capture, so every mode stands
+	// aside but end, which still removes a session's ledgers.
+	if args[0] != "end" {
+		_, aside := pieces.SddGates(ctx, env.SddValues, env.project())
+		if aside {
+			return 0
+		}
 	}
 
 	// Collapsing gates nothing, so a project lifting the gate keeps it.
