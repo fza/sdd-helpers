@@ -7,10 +7,4 @@ __pycache__/
 .claude/worktrees/
 .claude/settings.local.json
 CLAUDE.local.md
-.sdd/tmp/
-.sdd/config.local.yaml
-.sdd/stats/
-.sdd/sessions/
-.sdd/staged-blobs/
-.sdd/graph/.sdd-runtime/
 dist/
